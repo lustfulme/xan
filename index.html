@@ -85,31 +85,6 @@ h1 {
     z-index: 1;
 }
 
-.audio-gate {
-    position: fixed;
-    inset: 0;
-    z-index: 3;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.7);
-}
-
-.audio-gate button {
-    padding: 14px 22px;
-    border: 1px solid var(--gold);
-    background: #0b0000;
-    color: var(--gold);
-    font-family: "Courier New", monospace;
-    font-size: 16px;
-    letter-spacing: 2px;
-    cursor: pointer;
-}
-
-.audio-gate button:hover {
-    background: #190000;
-}
-
 .audio-controls {
     position: fixed;
     right: 18px;
@@ -186,12 +161,9 @@ h1 {
 </head>
 <body>
 <!-- NOT A REAL HTML LEL -->
-<audio id="bgMusic" autoplay loop preload="auto">
+<audio id="bgMusic" autoplay loop preload="auto" playsinline>
     <source src="tuff.mp3" type="audio/mpeg">
 </audio>
-<div class="audio-gate" id="audioGate">
-    <button id="audioGateButton" type="button">CLICK TO START MUSIC</button>
-</div>
 <div class="audio-controls">
     <button id="playBtn" type="button">PLAY</button>
     <button id="pauseBtn" type="button">PAUSE</button>
@@ -212,8 +184,6 @@ h1 {
 <script>
 
 const bgMusic = document.getElementById("bgMusic");
-const audioGate = document.getElementById("audioGate");
-const audioGateButton = document.getElementById("audioGateButton");
 const playBtn = document.getElementById("playBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const audioStatus = document.getElementById("audioStatus");
@@ -225,34 +195,21 @@ function setPlaybackState(isPlaying) {
     audioStatus.textContent = isPlaying ? "PLAYING" : "PAUSED";
 }
 
-function hideAudioGate() {
-    audioGate.style.display = "none";
-}
-
-function showAudioGate() {
-    audioGate.style.display = "flex";
-}
-
-async function unlockAudio() {
+async function tryAutoPlay() {
     try {
         await bgMusic.play();
-        hideAudioGate();
         setPlaybackState(true);
     } catch (err) {
-        showAudioGate();
         setPlaybackState(false);
     }
 }
 
-audioGateButton.addEventListener("click", unlockAudio);
-document.addEventListener("keydown", unlockAudio, { once: true });
-document.addEventListener("click", unlockAudio, { once: true });
-window.addEventListener("load", unlockAudio);
+window.addEventListener("load", tryAutoPlay);
+bgMusic.addEventListener("loadeddata", tryAutoPlay);
 
-playBtn.addEventListener("click", unlockAudio);
+playBtn.addEventListener("click", tryAutoPlay);
 pauseBtn.addEventListener("click", () => {
     bgMusic.pause();
-    hideAudioGate();
     setPlaybackState(false);
 });
 volumeSlider.addEventListener("input", (event) => {
