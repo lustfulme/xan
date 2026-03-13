@@ -167,7 +167,11 @@ h1 {
 <div class="audio-controls">
     <button id="playBtn" type="button">PLAY</button>
     <button id="pauseBtn" type="button">PAUSE</button>
+    <button id="skipBtn" type="button">SKIP</button>
     <span class="audio-status" id="audioStatus">PAUSED</span>
+    <label for="trackSelect">TRACK
+        <select id="trackSelect" aria-label="Choose music track"></select>
+    </label>
     <label for="volumeSlider">VOL
         <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1">
     </label>
@@ -186,8 +190,39 @@ h1 {
 const bgMusic = document.getElementById("bgMusic");
 const playBtn = document.getElementById("playBtn");
 const pauseBtn = document.getElementById("pauseBtn");
+const skipBtn = document.getElementById("skipBtn");
+const trackSelect = document.getElementById("trackSelect");
 const audioStatus = document.getElementById("audioStatus");
 const volumeSlider = document.getElementById("volumeSlider");
+
+const tracks = [
+    { name: "Wake up", src: "wake.mp3" },
+    { name: "Comma", src: "tuff.mp3" }
+];
+
+let currentTrackIndex = 0;
+
+function populateTrackList() {
+    trackSelect.innerHTML = tracks
+        .map((track, index) => `<option value="${index}">${track.name}</option>`)
+        .join("");
+    trackSelect.value = String(currentTrackIndex);
+}
+
+function setTrack(index) {
+    currentTrackIndex = (index + tracks.length) % tracks.length;
+    const current = tracks[currentTrackIndex];
+    const isPlaying = !bgMusic.paused;
+    const wasMuted = bgMusic.muted;
+    bgMusic.src = current.src;
+    bgMusic.load();
+    trackSelect.value = String(currentTrackIndex);
+    if (isPlaying) {
+        bgMusic.play().catch(() => {});
+    }
+    bgMusic.muted = wasMuted;
+    setPlaybackState(isPlaying);
+}
 
 function setPlaybackState(isPlaying) {
     playBtn.classList.toggle("active", isPlaying);
@@ -204,14 +239,25 @@ async function tryAutoPlay() {
     }
 }
 
-window.addEventListener("load", tryAutoPlay);
-bgMusic.addEventListener("loadeddata", tryAutoPlay);
+window.addEventListener("load", () => {
+    populateTrackList();
+    setTrack(currentTrackIndex);
+    tryAutoPlay();
+});
+
+trackSelect.addEventListener("change", (event) => {
+    setTrack(Number(event.target.value));
+});
 
 playBtn.addEventListener("click", tryAutoPlay);
 pauseBtn.addEventListener("click", () => {
     bgMusic.pause();
     setPlaybackState(false);
 });
+skipBtn.addEventListener("click", () => {
+    setTrack(currentTrackIndex + 1);
+});
+
 volumeSlider.addEventListener("input", (event) => {
     bgMusic.volume = Number(event.target.value);
 });
@@ -257,7 +303,7 @@ const textSets = [
     [
         "Best Haxor",
         "Most Best DDoSer",
-        "Super loved",
+        "Super Loved",
         "<3"
     ],
     [
